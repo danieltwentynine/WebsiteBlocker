@@ -1,4 +1,5 @@
 from tkinter import *
+import re # Import regular expressions for pattern matching
 
 root = Tk()
 root.geometry('500x300')
@@ -16,16 +17,20 @@ redirect = '127.0.0.1'
 
 def Blocker():
     website_lists = Websites.get(1.0, END)
-    Website = list(website_lists.split(","))
+    websites = [website.strip() for website in website_lists.split(",")]  # Clean up whitespace
 
     with open(host_path, 'r+') as host_file:
-        file_content = host_file.read()
-        for website in Website:
-            if website in file_content:
+        content = host_file.read()
+
+        for website in websites:
+            pattern = r"^\s*127\.0\.0\.1\s+" + re.escape(website) + r"\s*$"  # Exact match
+            if re.search(pattern, content, flags=re.MULTILINE):
                 Label(root, text='Already Blocked', font='arial 12 bold').place(x=200, y=200)
             else:
                 host_file.write(redirect + " " + website + '\n')
                 Label(root, text="Blocked", font='arial 12 bold').place(x=230, y=200)
+
+        host_file.truncate()  # Truncate the file to ensure changes take effect
 
 
 block = Button(root, text='Block', font='arial 12 bold', pady=5, command=Blocker, width=6, bg='royal blue1',
